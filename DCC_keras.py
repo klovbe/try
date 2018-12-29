@@ -65,6 +65,7 @@ n_iters = 2000
 epochs = n_iters//batch_size
 # double_x = np.append(train_set, train_set, axis=1)
 optimizer_g = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, decay=0.)
+dcc.build_graph()
 dcc.pre_model.compile(optimizer=optimizer_g, loss=[weighted_mse_x, weighted_mse_x, rho_mse_y(_sigma2)],
                        loss_weights=[1, 1, _lambda])
 # This is the actual Algorithm
