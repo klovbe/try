@@ -20,9 +20,6 @@ from scipy.stats import *
 from scipy.spatial.distance import *
 
 
-
-
-
 def m_knn(X, k, measure='euclidean'):
     """
     This code is taken from:
@@ -86,6 +83,22 @@ def plot_ae(X_embedded, name):
     plt.colorbar()
     plt.show()
 
+def extend_graph(graph_df, new_column_list):
+    dim = len(new_column_list)
+    array = np.zeros((dim, dim), dtype=np.int32)
+    columns = list(graph_df.columns)
+    edge_list = []
+    column2id = dict(zip(new_column_list, range(dim)))
+    for ix, row in graph_df.iterrows():
+        n_id = column2id[ix]
+        for col in columns:
+            value = row[col]
+            col_id = column2id[col]
+            if value > 0.0:
+                array[n_id, col_id] = 1
+    new_graph_df = pd.DataFrame(array, index=new_column_list, columns=new_column_list)
+    return new_graph_df
+
 def save_imputation(train_set, decoder_out, name):
     mask_data = train_set == 0.0
     mask_data = np.float32(mask_data)
@@ -95,3 +108,11 @@ def save_imputation(train_set, decoder_out, name):
     df_raw.to_csv('./cluster/{}_pure_autoencoder.csv'.format(name), index=None, float_format='%.4f')
     df_replace = pd.DataFrame(decoder_out_replace)
     df_replace.to_csv('./cluster/{}_pure_autoencoder.csv'.format(name), index=None, float_format='%.4f')
+
+
+if __name__ == "__main__":
+    # fire.Fire()
+    graph_df = pd.DataFrame([ [1,0, 1], [0, 1, 1], [1, 0, 1] ], index=["a", "b", "c"], columns=["a", "b", "c"])
+    new_graph_df = extend_graph(graph_df, ["d", "a", "b", "c", "h"])
+    print(graph_df)
+    print(new_graph_df)
