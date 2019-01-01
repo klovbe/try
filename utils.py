@@ -84,19 +84,46 @@ def plot_ae(X_embedded, name):
     plt.show()
 
 def extend_graph(graph_df, new_column_list):
+    # dim = len(new_column_list)
+    # array = np.zeros((dim, dim), dtype=np.int32)
+    # columns = list(graph_df.columns)
+    # edge_list = []
+    # column2id = dict(zip(new_column_list, range(dim)))
+    # for ix, row in graph_df.iterrows():
+    #     n_id = column2id[ix]
+    #     for col in columns:
+    #         value = row[col]
+    #         col_id = column2id[col]
+    #         if value > 0.0:
+    #             array[n_id, col_id] = 1
+    # new_graph_df = pd.DataFrame(array, index=new_column_list, columns=new_column_list)
+    print("extending graph")
+    ppi_gene_names = list(graph_df.columns)
+    print("original ppi length: {}".format(len(ppi_gene_names)))
+    cell_gene_names = new_column_list
+    print("original gene number: {}".format(len(cell_gene_names)))
+    gene_names = []
+    for col in ppi_gene_names:
+        if col not in cell_gene_names:
+            continue
+        gene_names.append(col)
+    print("overlap gene number of ppi: {}".format(len(gene_names)))
+    graph_df = graph_df.ix[gene_names, gene_names]
+    values = graph_df.values
     dim = len(new_column_list)
-    array = np.zeros((dim, dim), dtype=np.int32)
-    columns = list(graph_df.columns)
-    edge_list = []
     column2id = dict(zip(new_column_list, range(dim)))
-    for ix, row in graph_df.iterrows():
-        n_id = column2id[ix]
-        for col in columns:
-            value = row[col]
-            col_id = column2id[col]
-            if value > 0.0:
-                array[n_id, col_id] = 1
-    new_graph_df = pd.DataFrame(array, index=new_column_list, columns=new_column_list)
+    rows, cols = np.where(values > 0.0)
+    edge_indexs = list( zip(rows, cols) )
+    new_edge_indexs = [ [column2id[gene_names[x]], column2id[gene_names[y]] ] \
+                        for (x, y) in edge_indexs
+                      ]
+    new_index_array = np.array(new_edge_indexs, dtype=np.int32)
+    row_index, col_index = new_index_array[:, 0], new_index_array[:, 1]
+    dim = len(new_column_list)
+    new_graph = np.zeros((dim, dim), dtype=np.int32)
+    new_graph[ row_index, col_index ] = 1.0
+    new_graph_df = pd.DataFrame(new_graph, index=new_column_list, columns=new_column_list, dtype=np.int32)
+    # new_graph = new_graph + np.diag(np.ones(shape=new_graph.shape[0]))
     return new_graph_df
 
 def save_imputation(train_set, decoder_out, name):
